@@ -30,15 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  http: ^1.2.1
+  http: ^1.2.1 # Oder neuere Version
   cupertino_icons: ^1.0.8
 
-  # Firebase für die Nutzer-Anmeldung
+  # Firebase (falls für andere Zwecke benötigt)
   firebase_core: ^3.1.1
   firebase_auth: ^5.1.1
 
-  # Für den TrueLayer Login-Flow
+  # Für den TrueLayer Login-Flow & Token-Speicherung
   flutter_web_auth: ^0.5.0
   flutter_secure_storage: ^9.2.2
 
