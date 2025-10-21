@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io'; // Für PlatformException
+import 'dart:io'; // Für SocketException
 import 'package:http/http.dart' as http;
 import '../models/account_model.dart'; // Pfad ggf. anpassen
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -57,6 +57,7 @@ class TrueLayerService {
             // API hat erfolgreich geantwortet, aber es gibt keine Konten
             return []; // Leere Liste zurückgeben
           }
+          // Verwendet die Factory-Methode aus dem Account-Modell
           return results.map((json) => Account.fromJson(json)).toList();
         } else {
           // Unerwartete JSON-Struktur
@@ -68,6 +69,7 @@ class TrueLayerService {
         // Unauthorized - Token ist wahrscheinlich ungültig oder abgelaufen
         // Hier könntest du versuchen, den Token mit dem Refresh Token zu erneuern
         // oder den Benutzer zum erneuten Login auffordern.
+        print("Token ungültig (401). Lösche Tokens..."); // Debugging
         await _storage.delete(
           key: 'truelayer_access_token',
         ); // Ungültigen Token löschen
@@ -88,11 +90,12 @@ class TrueLayerService {
       );
     } catch (e) {
       // Andere Fehler (z.B. Timeout, FormatException beim Parsen)
+      print("Unerwarteter Fehler in getAccounts: $e"); // Debugging
       throw Exception('Ein unerwarteter Fehler ist aufgetreten: $e');
     }
   }
 
-  // --- Beispiel für Transaktionen ---
+  // --- Beispiel für Transaktionen (auskommentiert) ---
   // Future<List<Transaction>> getTransactions(String accountId) async {
   //   final accessToken = await _getAccessToken();
   //   if (accessToken == null) {
@@ -110,13 +113,14 @@ class TrueLayerService {
   //     // return results.map((json) => Transaction.fromJson(json)).toList();
   //     return []; // Platzhalter
   //   } else {
+  //      print("Token ungültig bei Transaktionen (Status ${response.statusCode}). Lösche Tokens..."); // Debugging
   //      await _storage.delete(key: 'truelayer_access_token'); // Ungültigen Token löschen
   //      await _storage.delete(key: 'truelayer_refresh_token');
   //     throw Exception('Fehler beim Laden der Transaktionen: ${response.body}');
   //   }
   // }
 
-  // --- Beispiel für Kontostand ---
+  // --- Beispiel für Kontostand (auskommentiert) ---
   // Future<double> getBalance(String accountId) async {
   //   final accessToken = await _getAccessToken();
   //   if (accessToken == null) {
@@ -132,6 +136,7 @@ class TrueLayerService {
   //     final Map<String, dynamic> result = json.decode(response.body)['results'][0];
   //     return (result['available'] ?? result['current'] ?? 0.0).toDouble();
   //   } else {
+  //      print("Token ungültig bei Kontostand (Status ${response.statusCode}). Lösche Tokens..."); // Debugging
   //      await _storage.delete(key: 'truelayer_access_token'); // Ungültigen Token löschen
   //      await _storage.delete(key: 'truelayer_refresh_token');
   //      throw Exception('Fehler beim Laden des Kontostands: ${response.body}');

@@ -4,17 +4,18 @@ import 'dart:async'; // Notwendig für den FutureBuilder
 
 // Importiere deine neuen Service- und Model-Dateien
 import 'services/truelayer_service.dart'; // Pfad ggf. anpassen
-import 'models/account_model.dart';    // Pfad ggf. anpassen
+import 'models/account_model.dart'; // Pfad ggf. anpassen
 
 // Importiere Pakete für Auth Flow und Secure Storage
 import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http; // Für den Token-Austausch (Backend empfohlen!)
-import 'dart:convert';                   // Für den Token-Austausch
+import 'package:http/http.dart'
+    as http; // Für den Token-Austausch (Backend empfohlen!)
+import 'dart:convert'; // Für den Token-Austausch
 
 // Hauptfunktion, die die App startet
 void main() {
-  runApp(const MyApp());
+  runApp(const MyApp()); // Startet das MyApp Widget
 }
 
 // --- Farb- und Stilkonstanten für das Design ---
@@ -26,7 +27,7 @@ class AppTheme {
   static const Color subtleTextColor = Color(0xFFB0B0B0);
 }
 
-// Das Haupt-Widget der Anwendung
+// Das Haupt-Widget der Anwendung (definiert Theme und Startseite)
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       title: 'Future Finance',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        // Dein bestehendes Theme
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppTheme.primaryColor,
         primaryColor: AppTheme.primaryColor,
@@ -74,41 +76,34 @@ class MyApp extends StatelessWidget {
             side: BorderSide(color: AppTheme.accentColor.withOpacity(0.2)),
           ),
         ),
-         textTheme: const TextTheme(
-           headlineSmall: TextStyle( // Früher headline6
-             color: AppTheme.textColor,
-             fontWeight: FontWeight.bold,
-             fontSize: 20, // Beispielgröße
-           ),
-           titleLarge: TextStyle( // Früher subtitle1
-             color: AppTheme.textColor,
-             fontSize: 18, // Beispielgröße
-             fontWeight: FontWeight.w600,
-           ),
-           bodyLarge: TextStyle( // Früher bodyText1
-             color: AppTheme.textColor,
-             fontSize: 16, // Beispielgröße
-           ),
-           bodyMedium: TextStyle( // Früher bodyText2
-             color: AppTheme.subtleTextColor,
-             fontSize: 14, // Beispielgröße
-           ),
-            bodySmall: TextStyle( // Früher caption
-             color: AppTheme.subtleTextColor,
-             fontSize: 12, // Beispielgröße
-           ),
-           // Füge hier weitere Textstile hinzu, falls benötigt
-         ),
-         elevatedButtonTheme: ElevatedButtonThemeData(
-           style: ElevatedButton.styleFrom(
-             backgroundColor: AppTheme.accentColor, // Hintergrundfarbe
-             foregroundColor: Colors.black, // Textfarbe
-             shape: RoundedRectangleBorder(
-               borderRadius: BorderRadius.circular(12),
-             ),
-             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-           ),
-         ),
+        textTheme: const TextTheme(
+          headlineSmall: TextStyle(
+            color: AppTheme.textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          titleLarge: TextStyle(
+            color: AppTheme.textColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+          bodyLarge: TextStyle(color: AppTheme.textColor, fontSize: 16),
+          bodyMedium: TextStyle(color: AppTheme.subtleTextColor, fontSize: 14),
+          bodySmall: TextStyle(color: AppTheme.subtleTextColor, fontSize: 12),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.accentColor,
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+        ),
+      ),
+      // KORREKTUR 1: Setzt die MainShell als Startseite der App
+      home: const MainShell(),
     );
   }
 }
@@ -136,7 +131,7 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     _checkLoginStatus(); // Prüfe beim Start, ob ein Token existiert
 
-     // Initialisiere die _pages Liste hier, nachdem _apiService verfügbar ist
+    // Initialisiere die _pages Liste hier, nachdem _apiService verfügbar ist
     _pages = <Widget>[
       AccountsOverviewPage(apiService: _apiService), // Service übergeben
       PaymentHistoryPage(), // Diese Seite verwendet noch Platzhalter
@@ -147,14 +142,17 @@ class _MainShellState extends State<MainShell> {
   // Prüft, ob ein Access Token gespeichert ist
   Future<void> _checkLoginStatus() async {
     final token = await _storage.read(key: 'truelayer_access_token');
-    setState(() {
-      _isLoggedIn = token != null && token.isNotEmpty;
-    });
-     // Wenn eingeloggt, lade die Konten neu (optional, falls die Seite das nicht selbst tut)
-     if (_isLoggedIn && _selectedIndex == 0) {
-       // Hier könnte man einen Neuladen-Mechanismus in AccountsOverviewPage auslösen
-       // z.B. über einen GlobalKey oder einen State Management Ansatz
-     }
+    // Wichtig: Prüfen ob das Widget noch 'mounted' ist, bevor setState gerufen wird
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = token != null && token.isNotEmpty;
+      });
+    }
+    // Wenn eingeloggt, lade die Konten neu (optional, falls die Seite das nicht selbst tut)
+    if (_isLoggedIn && _selectedIndex == 0) {
+      // Hier könnte man einen Neuladen-Mechanismus in AccountsOverviewPage auslösen
+      // z.B. über einen GlobalKey oder einen State Management Ansatz
+    }
   }
 
   // Wird aufgerufen, nachdem der Login-Flow erfolgreich war
@@ -164,15 +162,14 @@ class _MainShellState extends State<MainShell> {
     _onItemTapped(0);
   }
 
-    // Wird aufgerufen, wenn auf Logout geklickt wird
+  // Wird aufgerufen, wenn auf Logout geklickt wird
   Future<void> _logout() async {
     await _storage.delete(key: 'truelayer_access_token');
     await _storage.delete(key: 'truelayer_refresh_token');
     _checkLoginStatus(); // Aktualisiere den Status
-     // Optional: Navigiere zu einer Login-Seite oder zeige eine Meldung
-     _onItemTapped(0); // Zurück zur (jetzt leeren) Kontenübersicht
+    // Optional: Navigiere zu einer Login-Seite oder zeige eine Meldung
+    _onItemTapped(0); // Zurück zur (jetzt leeren) Kontenübersicht
   }
-
 
   static const List<String> _pageTitles = [
     'Kontenübersicht',
@@ -180,13 +177,17 @@ class _MainShellState extends State<MainShell> {
     'Analyse',
   ];
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    // Wichtig: Prüfen ob das Widget noch 'mounted' ist, bevor setState gerufen wird
+    if (mounted) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold muss innerhalb eines Builders sein, um openDrawer korrekt zu nutzen
     return Scaffold(
       appBar: AppBar(
         title: Text(_pageTitles[_selectedIndex]),
@@ -202,47 +203,63 @@ class _MainShellState extends State<MainShell> {
             ],
           ),
         ),
+        // Fügen Sie den Builder hinzu, um den Kontext für Scaffold.of zu erhalten
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppTheme.accentColor),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
       ),
       // Übergib Callbacks an den Drawer
       drawer: AppDrawer(
-              onLoginSuccess: _onLoginSuccess,
-              onLogout: _logout,
-              isLoggedIn: _isLoggedIn,
-            ),
+        onLoginSuccess: _onLoginSuccess,
+        onLogout: _logout,
+        isLoggedIn: _isLoggedIn,
+      ),
       // Zeige entweder die Seiten oder eine Login-Aufforderung an
       body: _isLoggedIn
           ? IndexedStack(index: _selectedIndex, children: _pages)
-          : Center(
-             child: Padding(
-               padding: const EdgeInsets.all(20.0),
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   const Icon(Icons.lock_outline, size: 60, color: AppTheme.accentColor),
-                   const SizedBox(height: 20),
-                   Text(
-                     'Bitte verbinden',
-                     style: Theme.of(context).textTheme.headlineSmall,
-                     textAlign: TextAlign.center,
-                   ),
-                     const SizedBox(height: 10),
-                   Text(
-                     'Öffne das Menü und wähle "Mit Bank verbinden", um deine Konten anzuzeigen.',
-                     style: Theme.of(context).textTheme.bodyMedium,
-                     textAlign: TextAlign.center,
-                   ),
-                    const SizedBox(height: 30),
-                   ElevatedButton.icon(
-                     icon: const Icon(Icons.link),
-                     label: const Text('Menü öffnen'),
-                     onPressed: () {
-                       Scaffold.of(context).openDrawer(); // Öffnet den Drawer
-                     },
-                   ),
-                 ],
-               ),
-             ),
-           ),
+          : Builder(
+              // Builder hier, um den Scaffold-Kontext für openDrawer zu bekommen
+              builder: (context) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.lock_outline,
+                        size: 60,
+                        color: AppTheme.accentColor,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Bitte verbinden',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Öffne das Menü und wähle "Mit Bank verbinden", um deine Konten anzuzeigen.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 30),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.link),
+                        label: const Text('Menü öffnen'),
+                        onPressed: () {
+                          Scaffold.of(
+                            context,
+                          ).openDrawer(); // Öffnet den Drawer
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -271,41 +288,47 @@ class _MainShellState extends State<MainShell> {
 // --- Das seitliche Menü (Drawer) ---
 class AppDrawer extends StatelessWidget {
   final VoidCallback onLoginSuccess; // Callback für erfolgreichen Login
-  final VoidCallback onLogout;       // Callback für Logout
-  final bool isLoggedIn;             // Aktueller Login-Status
-
+  final VoidCallback onLogout; // Callback für Logout
+  final bool isLoggedIn; // Aktueller Login-Status
 
   const AppDrawer({
     super.key,
     required this.onLoginSuccess,
     required this.onLogout,
     required this.isLoggedIn,
-    });
+  });
 
   // --- TrueLayer Authentifizierungs-Flow ---
   Future<void> authenticateWithTrueLayer(BuildContext context) async {
-    // Definiere deine TrueLayer App-Details
-    const clientId = 'sandbox-finanzmanagementapp-159eef'; // <-- HIER ERSETZEN!
-    const redirectUri = 'finanzapp://auth?code=XYZ123'; // <-- HIER ERSETZEN! z.B. 'com.deineapp.myapp://callback'
-    const callbackUrlScheme = 'http://localhost:3000/callback'; // <-- HIER ERSETZEN! (Schema aus redirectUri)
-    const scopes = 'info accounts balance transactions offline_access'; // Benötigte Berechtigungen
+    // ##### DEINE TRUELAYER DATEN #####
+    const clientId = 'sandbox-finanzmanagementapp-159eef';
+    const clientSecret =
+        '87508e64-e5bc-4208-8e17-ee0bdbc88b28'; // <-- SICHERHEITSRISIKO! Siehe Hinweis
+    const redirectUri = 'finanzmanagementapp://callback';
+    const callbackUrlScheme = 'finanzmanagementapp'; // Nur das Schema
+    // ##### ENDE DEINE DATEN #####
+
+    const scopes =
+        'info accounts balance transactions offline_access'; // Benötigte Berechtigungen
 
     // Baue die Auth-URL
-    final authUrl = Uri.https('auth.truelayer.com', '/', {
-      'response_type': 'code',
-      'client_id': clientId,
-      'redirect_uri': redirectUri,
-      'scope': scopes,
-      'providers': 'uk-ob-all uk-oauth-all', // Beispiel-Provider, anpassen!
-      // 'state': '...', // Optional: Zufälligen Wert für CSRF-Schutz senden
-      // 'nonce': '...', // Optional: Zufälligen Wert für Replay-Schutz senden
-    });
+    final authUrl = Uri.https(
+      'https://auth.truelayer.com/?response_type=code&client_id=finanzmanagementapp-159eef&scope=info%20accounts%20balance%20cards%20transactions%20direct_debits%20standing_orders%20offline_access&redirect_uri=finanzmanagementapp://callback&providers=uk-ob-all%20uk-oauth-all%20de-xs2a-sparkasse',
+      '/',
+      {
+        'response_type': 'code',
+        'client_id': clientId,
+        'redirect_uri': redirectUri,
+        'scope': scopes,
+        'providers': 'uk-ob-all uk-oauth-all', // Beispiel-Provider, anpassen!
+      },
+    );
 
     try {
       // Starte den Web-Authentifizierungs-Flow
       final result = await FlutterWebAuth.authenticate(
         url: authUrl.toString(),
-        callbackUrlScheme: callbackUrlScheme, // Schema deiner Redirect URI
+        callbackUrlScheme: callbackUrlScheme,
       );
 
       // Extrahiere den Autorisierungscode aus der zurückgegebenen URL
@@ -314,74 +337,82 @@ class AppDrawer extends StatelessWidget {
       if (code != null) {
         print('Erfolgreich Code erhalten: $code'); // Debugging
 
-        // !!! SICHERHEITSHINWEIS !!!
-        // SENDE DIESEN 'code' AN DEIN SICHERES BACKEND!
-        // Das Backend tauscht den Code + Client Secret gegen Access/Refresh Tokens.
-        // Das Backend sendet die Tokens sicher zurück an die App.
-
-        // ----- Beispielhafter (UNSICHERER!) direkter Token-Austausch (NUR FÜR TESTS!) -----
-        // NUR VERWENDEN, WENN DU KEIN BACKEND HAST UND DIE RISIKEN VERSTEHST!
+        // !!! SICHERHEITSHINWEIS: Token-Austausch im Backend durchführen !!!
+        // Der folgende Code ist NUR für Testzwecke und UNSICHER in Produktion!
+        // Dein Client Secret sollte niemals in der App gespeichert sein.
         final tokenResponse = await http.post(
           Uri.parse('https://auth.truelayer.com/connect/token'),
           headers: {'Content-Type': 'application/x-www-form-urlencoded'},
           body: {
             'grant_type': 'authorization_code',
             'client_id': clientId,
-            'client_secret': '87508e64-e5bc-4208-8e17-ee0bdbc88b28', // <-- SEHR UNSICHER IN DER APP!
+            'client_secret': clientSecret, // Dein Secret hier eingefügt
             'redirect_uri': redirectUri,
             'code': code,
           },
         );
 
         if (tokenResponse.statusCode == 200) {
-           final tokenData = json.decode(tokenResponse.body);
-           final accessToken = tokenData['access_token'];
-           final refreshToken = tokenData['refresh_token']; // Wichtig für spätere Erneuerung
+          final tokenData = json.decode(tokenResponse.body);
+          final accessToken = tokenData['access_token'];
+          final refreshToken = tokenData['refresh_token'];
 
-           // Speichere die erhaltenen Tokens sicher
-           const storage = FlutterSecureStorage();
-           await storage.write(key: 'truelayer_access_token', value: accessToken);
-           await storage.write(key: 'truelayer_refresh_token', value: refreshToken);
+          // Speichere die erhaltenen Tokens sicher
+          const storage = FlutterSecureStorage();
+          await storage.write(
+            key: 'truelayer_access_token',
+            value: accessToken,
+          );
+          await storage.write(
+            key: 'truelayer_refresh_token',
+            value: refreshToken,
+          );
 
-           print('Tokens erfolgreich erhalten und gespeichert.'); // Debugging
-           onLoginSuccess(); // Rufe den Callback auf, um die UI zu aktualisieren
-           Navigator.pop(context); // Schließe den Drawer
+          print('Tokens erfolgreich erhalten und gespeichert.'); // Debugging
+          onLoginSuccess(); // Rufe den Callback auf, um die UI zu aktualisieren
 
+          // Wichtig: Schließe den Drawer erst NACH erfolgreichem Speichern
+          // ignore: use_build_context_synchronously
+          if (context.mounted) Navigator.pop(context);
         } else {
-           print('Fehler beim Token-Austausch: ${tokenResponse.body}');
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('Fehler beim Token-Austausch: ${tokenResponse.statusCode}')),
-           );
+          print('Fehler beim Token-Austausch: ${tokenResponse.body}');
+          // ignore: use_build_context_synchronously
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Fehler beim Token-Austausch: ${tokenResponse.statusCode}',
+                ),
+              ),
+            );
+          }
         }
         // ----- Ende des unsicheren Beispiels -----
-
-
-        // Wenn du ein Backend verwendest, würde der Code hier so aussehen:
-        // final tokens = await sendCodeToBackend(code); // Deine Backend-Funktion
-        // if (tokens != null) {
-        //   await _storage.write(key: 'truelayer_access_token', value: tokens['access_token']);
-        //   await _storage.write(key: 'truelayer_refresh_token', value: tokens['refresh_token']);
-        //   onLoginSuccess();
-        //   Navigator.pop(context); // Schließe den Drawer
-        // } else {
-        //   // Fehlerbehandlung für Backend-Kommunikation
-        // }
-
       } else {
-        print('Fehler: Kein Code in der Antwort-URL gefunden.');
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Authentifizierung fehlgeschlagen: Kein Code erhalten.')),
-         );
+        print(
+          'Fehler: Kein Code in der Antwort-URL gefunden. URL war: $result',
+        );
+        // ignore: use_build_context_synchronously
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Authentifizierung fehlgeschlagen: Kein Code erhalten.',
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       print('Authentifizierungsfehler: $e');
-      // Zeige dem Benutzer eine Fehlermeldung
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentifizierungsfehler: ${e.toString()}')),
-      );
+      // ignore: use_build_context_synchronously
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Authentifizierungsfehler: ${e.toString()}')),
+        );
+      }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -410,15 +441,11 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          // Zeige "Verbinden" oder "Trennen/Logout" Button basierend auf Login-Status
           if (!isLoggedIn)
             ListTile(
-              leading: const Icon(
-                Icons.link,
-                color: AppTheme.accentColor,
-              ),
+              leading: const Icon(Icons.link, color: AppTheme.accentColor),
               title: const Text('Mit Bank verbinden'),
-              onTap: () => authenticateWithTrueLayer(context), // Starte den Auth-Flow
+              onTap: () => authenticateWithTrueLayer(context),
             ),
 
           ListTile(
@@ -439,14 +466,17 @@ class AppDrawer extends StatelessWidget {
           ),
           const Divider(color: AppTheme.secondaryColor),
           if (isLoggedIn)
-             ListTile(
-               leading: const Icon(Icons.logout, color: AppTheme.subtleTextColor),
-               title: const Text('Verbindung trennen'),
-               onTap: () {
-                 onLogout(); // Logout-Funktion aufrufen
-                 Navigator.pop(context); // Drawer schließen
-               }
-             ),
+            ListTile(
+              leading: const Icon(
+                Icons.logout,
+                color: AppTheme.subtleTextColor,
+              ),
+              title: const Text('Verbindung trennen'),
+              onTap: () {
+                onLogout();
+                Navigator.pop(context);
+              },
+            ),
         ],
       ),
     );
@@ -455,7 +485,7 @@ class AppDrawer extends StatelessWidget {
 
 // --- SEITE 1: Kontenübersicht (MIT API-DATEN) ---
 class AccountsOverviewPage extends StatefulWidget {
-  final TrueLayerService apiService; // Service wird jetzt übergeben
+  final TrueLayerService apiService;
 
   const AccountsOverviewPage({super.key, required this.apiService});
 
@@ -464,18 +494,16 @@ class AccountsOverviewPage extends StatefulWidget {
 }
 
 class _AccountsOverviewPageState extends State<AccountsOverviewPage> {
-  // Ein Future, das die Liste der Konten halten wird.
   late Future<List<Account>> _accountsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadAccounts(); // Lade Konten beim Initialisieren
+    _loadAccounts();
   }
 
-  // Methode zum (Neu-)Laden der Konten
   void _loadAccounts() {
-     // Prüfe, ob das Widget noch im Baum ist, bevor setState aufgerufen wird
+    // Wichtig: Prüfen ob das Widget noch 'mounted' ist, bevor setState gerufen wird
     if (mounted) {
       setState(() {
         _accountsFuture = widget.apiService.getAccounts();
@@ -483,140 +511,143 @@ class _AccountsOverviewPageState extends State<AccountsOverviewPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    // FutureBuilder wartet auf das Ergebnis des API-Aufrufs und baut die UI entsprechend.
     return FutureBuilder<List<Account>>(
       future: _accountsFuture,
       builder: (context, snapshot) {
-        // Fall 1: Während die Daten geladen werden, zeige einen Ladekreis.
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Fall 2: Wenn ein Fehler aufgetreten ist.
         if (snapshot.hasError) {
-          // Zeige den Fehler an und biete ggf. einen "Erneut versuchen"-Button
-           return Center(
-             child: Padding(
-               padding: const EdgeInsets.all(16.0),
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                    Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-                    SizedBox(height: 16),
-                   Text(
-                     'Fehler beim Laden der Konten:\n${snapshot.error}',
-                     textAlign: TextAlign.center,
-                     style: const TextStyle(color: Colors.redAccent),
-                   ),
-                    SizedBox(height: 20),
-                   ElevatedButton.icon(
-                       icon: const Icon(Icons.refresh),
-                       label: const Text('Erneut versuchen'),
-                       onPressed: _loadAccounts, // Ruft die Ladefunktion erneut auf
-                     )
-                 ],
-               ),
-             ),
-           );
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.redAccent,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Fehler beim Laden der Konten:\n${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Erneut versuchen'),
+                    onPressed: _loadAccounts,
+                  ),
+                ],
+              ),
+            ),
+          );
         }
 
-        // Fall 3: Wenn keine Daten vorhanden sind (API gibt eine leere Liste zurück).
-        // Überprüft explizit auf null oder leere Liste
-         if (!snapshot.hasData || snapshot.data == null || snapshot.data!.isEmpty) {
-           return Center(
-             child: Padding(
-               padding: const EdgeInsets.all(20.0),
-               child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.info_outline, color: AppTheme.accentColor, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Keine Konten gefunden',
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                      ),
-                     const SizedBox(height: 8),
-                     Text(
-                       'Es wurden keine Konten über die verbundene Bank abgerufen.',
-                       style: Theme.of(context).textTheme.bodyMedium,
-                       textAlign: TextAlign.center,
-                       ),
-                       const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                         icon: const Icon(Icons.refresh),
-                         label: const Text('Aktualisieren'),
-                         onPressed: _loadAccounts,
-                       )
-                  ],
-               ),
-             )
-           );
-         }
+        // Überprüft explizit auf null ODER leere Liste
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: AppTheme.accentColor,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Keine Konten gefunden',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Es wurden keine Konten über die verbundene Bank abgerufen oder Sie müssen sich erst verbinden.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Aktualisieren'),
+                    onPressed: _loadAccounts,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-
-        // Fall 4: Daten wurden erfolgreich geladen.
         final accounts = snapshot.data!;
-        // Berechne die Gesamtbilanz aus den echten Daten.
         final totalBalance = accounts.fold<double>(
           0.0,
-          (sum, item) => sum + item.balance, // Annahme: Alle Konten in gleicher Währung oder Umrechnung nötig
+          (sum, item) => sum + item.balance,
         );
-         // Finde die Währung (vereinfacht, nimmt die erste)
-        final currencySymbol = accounts.isNotEmpty ? accounts.first.currency : 'EUR'; // Standard auf EUR
+        final currencySymbol = accounts.isNotEmpty
+            ? accounts.first.currency
+            : 'EUR';
 
-
-        return RefreshIndicator( // Ermöglicht Pull-to-Refresh
-           onRefresh: () async {
-              _loadAccounts(); // Lade Konten neu
-           },
-           child: ListView(
+        return RefreshIndicator(
+          onRefresh: () async {
+            _loadAccounts();
+          },
+          child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              TotalBalanceCard(balance: '${totalBalance.toStringAsFixed(2)} $currencySymbol'),
+              TotalBalanceCard(
+                balance: '${totalBalance.toStringAsFixed(2)} $currencySymbol',
+              ),
               const SizedBox(height: 24),
               Text(
                 "Deine Konten",
-                 style: Theme.of(context).textTheme.headlineSmall,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
-              // Erstelle eine AccountCard für jedes Konto aus der API-Antwort
-              if (accounts.isEmpty)
-                 Padding(
-                   padding: const EdgeInsets.only(top: 20.0),
-                   child: Text("Keine Konten für diese Verbindung gefunden.", style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
-                 )
-              else
-                 ...accounts.map( (account) => AccountCard(
-                      accountName: account.displayName,
-                      balance: '${account.balance.toStringAsFixed(2)} ${account.currency}',
-                      iban: account.accountNumber,
-                   ),
-                 ).toList(),
-               ],
-             ),
-         );
+              // Zeige die Konten nur an, wenn die Liste nicht leer ist
+              if (accounts.isNotEmpty)
+                ...accounts
+                    .map(
+                      (account) => AccountCard(
+                        accountName: account.displayName,
+                        balance:
+                            '${account.balance.toStringAsFixed(2)} ${account.currency}',
+                        iban: account.accountNumber,
+                      ),
+                    )
+                    .toList(),
+              // Optional: Eine Nachricht anzeigen, wenn keine Konten da sind (redundant zur Prüfung oben, aber sicherer)
+              // else
+              //    Padding(
+              //      padding: const EdgeInsets.only(top: 20.0),
+              //      child: Text("Keine Konten für diese Verbindung gefunden.", style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+              //    ),
+            ],
+          ),
+        );
       },
     );
   }
 }
 
-
-// --- SEITE 2: Zahlungshistorie (verwendet noch Platzhalter) ---
+// --- SEITE 2: Zahlungshistorie (Platzhalter) ---
 class PaymentHistoryPage extends StatelessWidget {
   const PaymentHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Diese Daten sind noch Platzhalter. Der Prozess zur Anbindung der
-    // Transaktions-API wäre sehr ähnlich zu dem der Konten.
-    // Du müsstest eine getTransactions Methode im TrueLayerService erstellen
-    // und diese Seite mit einem FutureBuilder oder State Management verbinden.
-
     final transactions = [
+      // Platzhalterdaten
       {
         'type': 'expense',
         'merchant': 'Supermarkt',
@@ -635,14 +666,13 @@ class PaymentHistoryPage extends StatelessWidget {
         'amount': '- 45,50 €',
         'date': '18. Okt',
       },
-      // Füge mehr Beispieltransaktionen hinzu...
-        {
+      {
         'type': 'expense',
         'merchant': 'Online-Shop',
         'amount': '- 120,00 €',
         'date': '17. Okt',
       },
-       {
+      {
         'type': 'income',
         'merchant': 'Rückerstattung',
         'amount': '+ 35,00 €',
@@ -666,14 +696,12 @@ class PaymentHistoryPage extends StatelessWidget {
   }
 }
 
-// --- SEITE 3: Analyse (verwendet noch Platzhalter) ---
+// --- SEITE 3: Analyse (Platzhalter) ---
 class AnalysisPage extends StatelessWidget {
   const AnalysisPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Diese Seite benötigt ebenfalls Daten von der API (z.B. Transaktionen)
-    // um sinnvolle Analysen durchzuführen.
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -681,11 +709,12 @@ class AnalysisPage extends StatelessWidget {
         children: [
           Text(
             "Finanzanalyse",
-             style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
           Card(
             child: Container(
+              // Platzhalter für Diagramm
               height: 200,
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
@@ -694,12 +723,9 @@ class AnalysisPage extends StatelessWidget {
                 children: [
                   Icon(Icons.bar_chart, size: 48, color: AppTheme.accentColor),
                   SizedBox(height: 16),
+                  Text("Ausgaben-Diagramm (Platzhalter)"),
                   Text(
-                    "Ausgaben-Diagramm (Platzhalter)",
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    "Hier könnte eine Visualisierung deiner Ausgaben nach Kategorie angezeigt werden.",
+                    "Hier könnte eine Visualisierung deiner Ausgaben angezeigt werden.",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppTheme.subtleTextColor),
                   ),
@@ -709,43 +735,47 @@ class AnalysisPage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Row(
+            // Platzhalter für Kennzahlen
             children: [
               Expanded(
                 child: AnalysisTile(
                   title: "Ausgaben Monat",
-                  value: "1.245,67 €", // Placeholder
+                  value: "1.245,67 €",
                   icon: Icons.arrow_downward,
-                   iconColor: Colors.redAccent,
+                  iconColor: Colors.redAccent,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: AnalysisTile(
                   title: "Einnahmen Monat",
-                  value: "2.800,00 €", // Placeholder
+                  value: "2.800,00 €",
                   icon: Icons.arrow_upward,
                   iconColor: Colors.greenAccent,
                 ),
               ),
             ],
           ),
-            const SizedBox(height: 24),
-            Text(
+          const SizedBox(height: 24),
+          Text(
             "Budgets (Beispiel)",
-             style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
-           const SizedBox(height: 16),
-           BudgetTile(category: "Lebensmittel", spent: 350.50, budget: 500),
-           BudgetTile(category: "Freizeit", spent: 180.20, budget: 250),
-           BudgetTile(category: "Transport", spent: 95.00, budget: 100),
+          const SizedBox(height: 16),
+          BudgetTile(
+            category: "Lebensmittel",
+            spent: 350.50,
+            budget: 500,
+          ), // Platzhalter Budgets
+          BudgetTile(category: "Freizeit", spent: 180.20, budget: 250),
+          BudgetTile(category: "Transport", spent: 95.00, budget: 100),
         ],
       ),
     );
   }
 }
 
-
-// --- WIDGETS (Unverändert, bis auf kleine Anpassungen/Textstile) ---
+// --- WIDGETS ---
 
 class TotalBalanceCard extends StatelessWidget {
   final String balance;
@@ -763,21 +793,23 @@ class TotalBalanceCard extends StatelessWidget {
             color: AppTheme.accentColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppTheme.accentColor.withOpacity(0.2)),
-            gradient: LinearGradient( // Optional: Fügt einen leichten Gradienten hinzu
-               begin: Alignment.topLeft,
-               end: Alignment.bottomRight,
-               colors: [
-                 AppTheme.secondaryColor.withOpacity(0.3),
-                 AppTheme.accentColor.withOpacity(0.1),
-               ],
-             ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.secondaryColor.withOpacity(0.3),
+                AppTheme.accentColor.withOpacity(0.1),
+              ],
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Text(
+              Text(
                 'Gesamtguthaben',
-                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 16),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
@@ -786,7 +818,7 @@ class TotalBalanceCard extends StatelessWidget {
                   color: AppTheme.textColor,
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1, // Etwas mehr Abstand
+                  letterSpacing: 1.1,
                 ),
               ),
             ],
@@ -796,7 +828,6 @@ class TotalBalanceCard extends StatelessWidget {
     );
   }
 }
-
 
 class AccountCard extends StatelessWidget {
   final String accountName;
@@ -812,9 +843,11 @@ class AccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Extrahiere den reinen Betrag für die Farbprüfung
-    final numericBalance = double.tryParse(balance.split(' ')[0].replaceAll(',', '.')) ?? 0.0;
-    final balanceColor = numericBalance < 0 ? Colors.redAccent : Colors.greenAccent;
+    final numericBalance =
+        double.tryParse(balance.split(' ')[0].replaceAll(',', '.')) ?? 0.0;
+    final balanceColor = numericBalance < 0
+        ? Colors.redAccent
+        : Colors.greenAccent;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -823,25 +856,25 @@ class AccountCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded( // Damit langer Text umbricht
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     accountName,
-                     style: Theme.of(context).textTheme.titleLarge,
-                     overflow: TextOverflow.ellipsis, // Verhindert Überlaufen
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                     iban,
-                     style: Theme.of(context).textTheme.bodyMedium,
-                     overflow: TextOverflow.ellipsis, // Verhindert Überlaufen
+                    iban,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-             const SizedBox(width: 16), // Abstand zwischen Text und Betrag
+            const SizedBox(width: 16),
             Text(
               balance,
               style: TextStyle(
@@ -849,7 +882,7 @@ class AccountCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: balanceColor,
               ),
-              textAlign: TextAlign.right, // Rechtsbündig
+              textAlign: TextAlign.right,
             ),
           ],
         ),
@@ -857,7 +890,6 @@ class AccountCard extends StatelessWidget {
     );
   }
 }
-
 
 class TransactionListItem extends StatelessWidget {
   final bool isExpense;
@@ -883,11 +915,7 @@ class TransactionListItem extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: amountColor.withOpacity(0.2),
-          child: Icon(
-            iconData,
-            color: amountColor,
-            size: 20,
-          ),
+          child: Icon(iconData, color: amountColor, size: 20),
         ),
         title: Text(merchant, style: Theme.of(context).textTheme.bodyLarge),
         subtitle: Text(date, style: Theme.of(context).textTheme.bodySmall),
@@ -896,7 +924,7 @@ class TransactionListItem extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: amountColor,
-             fontSize: 16,
+            fontSize: 16,
           ),
         ),
       ),
@@ -908,14 +936,14 @@ class AnalysisTile extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  final Color iconColor; // Hinzugefügt für Flexibilität
+  final Color iconColor;
 
   const AnalysisTile({
     super.key,
     required this.title,
     required this.value,
     required this.icon,
-    this.iconColor = AppTheme.accentColor, // Standardfarbe
+    this.iconColor = AppTheme.accentColor,
   });
 
   @override
@@ -926,13 +954,15 @@ class AnalysisTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: iconColor, size: 24), // Verwendet iconColor
+            Icon(icon, color: iconColor, size: 24),
             const SizedBox(height: 8),
             Text(title, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 4),
             Text(
               value,
-               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -941,7 +971,6 @@ class AnalysisTile extends StatelessWidget {
   }
 }
 
-// Neues Widget für Budget-Anzeige (Beispiel)
 class BudgetTile extends StatelessWidget {
   final String category;
   final double spent;
@@ -957,7 +986,9 @@ class BudgetTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percentage = (budget > 0) ? (spent / budget) : 0.0;
-    final progressColor = percentage > 1.0 ? Colors.redAccent : (percentage > 0.8 ? Colors.orangeAccent : Colors.greenAccent);
+    final progressColor = percentage > 1.0
+        ? Colors.redAccent
+        : (percentage > 0.8 ? Colors.orangeAccent : Colors.greenAccent);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -978,10 +1009,10 @@ class BudgetTile extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: percentage.clamp(0.0, 1.0), // Stelle sicher, dass Wert zwischen 0 und 1 liegt
+              value: percentage.clamp(0.0, 1.0),
               backgroundColor: AppTheme.primaryColor.withOpacity(0.5),
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-              minHeight: 6, // Dickere Leiste
+              minHeight: 6,
             ),
           ],
         ),
